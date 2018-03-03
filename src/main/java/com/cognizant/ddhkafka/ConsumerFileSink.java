@@ -55,24 +55,25 @@ public class ConsumerFileSink {
       while (true) {
     	 try{ 
     		 
-         ConsumerRecords<String, String> records = consumer.poll(500);
-         for (ConsumerRecord<String, String> record : records){
-         // print the offset,key and value for the consumer records.
-        	 System.out.printf("offset = %d, key = %s, value = %s\n", 
-        			 record.offset(), record.key(), record.value());
-        	 if(record.value() != null) 
-        	 {
-        		 String currentTs = new SimpleDateFormat("yyyyMMddHHmm").format(new Date());
-        		 String fileName = topicName + "_" + currentTs + ".txt";
-        		 String filePath = "/Users/ngvinay/bigdata/kafka/data/"+fileName;
-        		 buffWriter = new BufferedWriter(new FileWriter(filePath));
-        		 buffWriter.write(record.value() + System.lineSeparator());
-        		 buffWriter.flush();
-        		 buffWriter.close();
-        	 }
-         }
-             
+    		 ConsumerRecords<String, String> records = consumer.poll(500);
+         
+    		 if(records.count() != 0) {
+    			 for (ConsumerRecord<String, String> record : records){
+    				 // print the offset,key and value for the consumer records.
+    				 System.out.printf("offset = %d, key = %s, value = %s\n", 
+        				 			record.offset(), record.key(), record.value());
+    				 String currentTs = new SimpleDateFormat("yyyyMMddHHmm").format(new Date());
+    				 String fileName = topicName + "_" + currentTs + ".txt";
+    				 String filePath = "/Users/ngvinay/bigdata/kafka/data/"+fileName;
+    				 buffWriter = new BufferedWriter(new FileWriter(filePath,true));
+    				 buffWriter.write(record.value() + System.lineSeparator());
+    				 buffWriter.flush();
+    				 
+    			 }
+    		 	 
+        	 buffWriter.close();
     	 }
+         }
     	 catch (IOException e) {
              // TODO Auto-generated catch block
              e.printStackTrace();
