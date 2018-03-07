@@ -45,8 +45,6 @@ public class FileWatcher {
 			e.printStackTrace();
 		}
 	
-		//File dir = new File("/users/ngvinay/bigdata/kafka/data/");
-	
 		// To list only the files that end with .txt
 		FilenameFilter textFilter = new FilenameFilter() {
 		public boolean accept(File dir, String name) {
@@ -63,7 +61,7 @@ public class FileWatcher {
 		File[] files = dir.listFiles(textFilter);
 		
 		if (files.length == 0){
-			System.out.println("No new files for filewatcher to pick");
+			System.out.println("No new files for filewatcher");
 		}
 		
 		// Loop thru each .txt file and rename to .json if the file is created a minute before the current timestamp
@@ -132,7 +130,7 @@ public class FileWatcher {
 		    csvFname = jsonFname[0] + "_" + instant + ".csv";
 			
 			while((strLine = br.readLine()) != null){ // iterate lines in each file and append to string buffer
-				sb.append(uuid).append(",").append(instant).append(",");
+				sb.append(uuid).append(",").append(instant);
 				
 				JsonFactory factory = new JsonFactory();
 				ObjectMapper mapper = new ObjectMapper(factory);
@@ -150,14 +148,16 @@ public class FileWatcher {
 	                }
 				sb.append("\n");
 			}
-			
+			file.delete();
 		}
-		System.out.println(sb);  // Merge multiple json files and write to csv file here
-		String filePath = "/Users/ngvinay/bigdata/kafka/data/"+csvFname;
-		 buffWriter = new BufferedWriter(new FileWriter(filePath,false));		
-		 buffWriter.write(sb.toString());			
-		 buffWriter.flush();
-		 buffWriter.close();
+		if( sb.length() != 0){
+			System.out.println(sb);  // Merge multiple json files and write to csv file here
+			String filePath = "/Users/ngvinay/bigdata/kafka/data/"+csvFname;
+			 buffWriter = new BufferedWriter(new FileWriter(filePath,false));		
+			 buffWriter.write(sb.toString());			
+			 buffWriter.flush();
+			 buffWriter.close();			
+		}		
 		
 		}
 		
