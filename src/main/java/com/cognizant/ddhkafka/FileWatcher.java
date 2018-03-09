@@ -67,35 +67,25 @@ public class FileWatcher {
 		// Loop thru each .txt file and rename to .json if the file is created a minute before the current timestamp
 		for (File file : files) {
 			
-			String[] filename = file.getName().split("\\.");
-			
-			//System.out.println(filename[0]);
-			
-			jsonFile = filename[0] + ".json";
-			//System.out.println("jsonfile:" + jsonFile);
-			
+			String[] filename = file.getName().split("\\.");			
+			jsonFile = filename[0] + ".json";			
   			String lastMod = new SimpleDateFormat("yyyyMMddHHmm").format(file.lastModified());
-  			System.out.println(lastMod);
+  			
 			try {
 				lmts = format.parse(lastMod);
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
+			
 			DateTime dt1 = new DateTime(cts);
 			DateTime dt2 = new DateTime(lmts);
-			
-			//System.out.println(dt1.getMinuteOfDay());
-			//System.out.println(dt2.getMinuteOfDay());
-			
-			//System.out.println(Minutes.minutesBetween(dt2, dt1).getMinutes() % 60 + " minutes, ");
+
 			int x = Minutes.minutesBetween(dt2, dt1).getMinutes() % 60;
 			if ( x >= 1){
 				File newFile = new File("/users/ngvinay/bigdata/kafka/data/"+jsonFile);
-				System.out.println("File renamed for" + file);
+				System.out.println("txt file renamed to .json :" + file);
 				file.renameTo(newFile);
 			}
-			
-			//System.out.println("File: " + file.getName() + ", Date: " + new Date(file.lastModified())+ "");
 					
 		}
     }
@@ -122,7 +112,8 @@ public class FileWatcher {
 			};
 			
 		// Process all Json files in the directory and convert to csv	
-		File[] files = dir.listFiles(jsonFilter);		
+		File[] files = dir.listFiles(jsonFilter);
+		int i = 0;
 		for (File file : files) {   // Iterate files in dir
 			BufferedReader br  = new BufferedReader(new FileReader(file));
 			String strLine;
@@ -130,19 +121,29 @@ public class FileWatcher {
 		    csvFname = jsonFname[0] + "_" + instant + ".csv";
 			
 			while((strLine = br.readLine()) != null){ // iterate lines in each file and append to string buffer
-				sb.append(uuid).append(",").append(instant);
+				//sb.append(uuid).append(",").append(instant);
+				i+=1;
 				
 				JsonFactory factory = new JsonFactory();
 				ObjectMapper mapper = new ObjectMapper(factory);
 				JsonNode rootNode = mapper.readTree(strLine);  
 
-				Iterator<Map.Entry<String,JsonNode>> fieldsIterator = rootNode.fields();
-	       
+				Iterator<Map.Entry<String,JsonNode>> keysIterator = rootNode.fields();
+				if ( i == 1) {
+					sb.append("uuid").append(",").append("load_ts");
+					while (keysIterator.hasNext()) { 
+						Map.Entry<String,JsonNode> field = keysIterator.next();
+						sb.append(",");
+						sb.append(field.getKey());
+ 	                }
+					sb.append("\n");
+				}	
+								
+				Iterator<Map.Entry<String,JsonNode>> fieldsIterator = rootNode.fields();				
+				sb.append(uuid).append(",").append(instant);
 				while (fieldsIterator.hasNext()) { // Iterate fields in each line
 					Map.Entry<String,JsonNode> field = fieldsIterator.next();
-					//if (sb.length() != 0){
 					sb.append(",");
-					//}
 					sb.append(field.getValue());
 	     
 	                }
@@ -151,7 +152,7 @@ public class FileWatcher {
 			file.delete();
 		}
 		if( sb.length() != 0){
-			System.out.println(sb);  // Merge multiple json files and write to csv file here
+			//System.out.println(sb);  // Merge multiple json files and write to csv file here
 			String filePath = "/Users/ngvinay/bigdata/kafka/data/"+csvFname;
 			 buffWriter = new BufferedWriter(new FileWriter(filePath,false));		
 			 buffWriter.write(sb.toString());			

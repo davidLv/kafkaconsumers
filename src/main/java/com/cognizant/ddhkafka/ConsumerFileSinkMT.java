@@ -28,8 +28,6 @@ public class ConsumerFileSinkMT {
       //Kafka consumer configuration settings
       Properties props = new Properties();
       
-      //BufferedWriter buffWriter = null;
-      
       props.put("bootstrap.servers", "localhost:9092"); // Kafka server running at port 9092 on localhost
       props.put("group.id", "test");                    // consumer group test
       props.put("enable.auto.commit", "true");          // Messages will be auto committed
